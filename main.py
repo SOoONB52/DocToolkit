@@ -2,11 +2,20 @@
 import os
 import sys
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
+
+from app import ICON_ICO
 
 
 def main() -> int:
+    if sys.platform == "win32":
+        # Group DocToolkit's windows under its own taskbar button and icon,
+        # instead of Python's, when running from source.
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("TariqAlanazi.DocToolkit")
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(str(ICON_ICO)))
     app.setApplicationName("DocToolkit")
     app.setStyle("Fusion")
 

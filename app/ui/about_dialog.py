@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout
 
-from app import DEVELOPER_EMAIL, __version__
+from app import DEVELOPER_EMAIL, ICON_PNG, __version__
 from app.i18n import tr
 
 
@@ -14,6 +14,10 @@ class AboutDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(tr("about_title"))
         self.setMinimumWidth(460)
+
+        logo = QLabel()
+        logo.setPixmap(QPixmap(str(ICON_PNG)).scaled(96, 96, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        logo.setAlignment(Qt.AlignCenter)
 
         title = QLabel("DocToolkit")
         font = QFont(title.font())
@@ -47,6 +51,7 @@ class AboutDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
+        layout.addWidget(logo)
         layout.addWidget(title)
         layout.addWidget(version)
         layout.addWidget(desc)

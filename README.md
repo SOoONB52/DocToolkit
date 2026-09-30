@@ -1,3 +1,5 @@
+<img src="app/assets/icon.png" width="96" alt="DocToolkit icon">
+
 # DocToolkit
 
 A free Windows app for PDF and Word files. It edits and removes metadata, extracts images, reads text from images (English and Arabic) and counts words.
@@ -9,9 +11,12 @@ Everything runs on your own computer. No file is ever uploaded.
 ## Download
 
 1. Open the [latest release](../../releases/latest).
-2. Download **DocToolkit-Setup-1.0.0.exe** and run it.
+2. Under **Assets**, download **DocToolkit-*version*-windows.zip**.
+3. Right-click the ZIP and choose **Extract All**. Then open the **DocToolkit** folder and double-click **DocToolkit.exe**.
 
-That's all. You don't need admin rights, and you don't need to install Python or anything else: the text-reading engine (Tesseract) is included.
+You don't need admin rights, and you don't need to install Python or anything else: the text-reading engine (Tesseract) is included.
+
+Keep **DocToolkit.exe** inside its folder, because it needs the `_internal` folder next to it. For a desktop shortcut, right-click **DocToolkit.exe** and choose **Show more options**, then **Send to**, then **Desktop (create shortcut)**.
 
 > **"Windows protected your PC"?** Windows shows this for new apps that aren't signed with a paid certificate. Click **More info**, then **Run anyway**.
 
@@ -60,28 +65,6 @@ Next time, only the last line is needed (from inside the DocToolkit folder).
 
 **ExifTool (optional):** the ExifTool report only works if ExifTool is present. Download the Windows version from [exiftool.org](https://exiftool.org), rename `exiftool(-k).exe` to `exiftool.exe`, and put it with its `exiftool_files` folder in a folder named `exiftool` inside the project folder.
 
-## Build the installer
-
-1. Copy Tesseract into the project, so it's packed into the app:
-   ```powershell
-   Copy-Item -Recurse "C:\Program Files\Tesseract-OCR" tesseract
-   ```
-   (Optional) Put the `exiftool` folder in the project too, as described above.
-2. Build the app:
-   ```powershell
-   venv\Scripts\python -m pip install pyinstaller
-   venv\Scripts\pyinstaller --noconfirm --clean DocToolkit.spec
-   ```
-   The app is now in `dist\DocToolkit`. Test it by running `dist\DocToolkit\DocToolkit.exe`.
-3. Install [Inno Setup 6](https://jrsoftware.org/isdl.php), then build the installer:
-   ```powershell
-   & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-   ```
-   The installer is saved as `installer\DocToolkit-Setup-1.0.0.exe`.
-4. On GitHub, create a new release (for example `v1.0.0`) and upload the installer.
-
-For a new version, change the version number in `app\__init__.py` and in `installer.iss`.
-
 ## Project structure
 
 ```
@@ -89,9 +72,9 @@ main.py              starts the app
 app/core/            the actual work: metadata, images, OCR, word count (no window code)
 app/ui/              the main window, tabs and dialogs
 app/i18n.py          all text shown in the app
+app/assets/          the app icon
 DocToolkit.spec      recipe for building the app with PyInstaller
-installer.iss        recipe for building the installer with Inno Setup
-docs/screenshots/    pictures used on this page
+docs/                screenshots for this page, and the icon's source drawings
 ```
 
 ## Built with

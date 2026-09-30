@@ -5,8 +5,14 @@
 #
 # Result: dist\DocToolkit\DocToolkit.exe  (keep the whole dist\DocToolkit folder together)
 #
-# Before building, copy Tesseract into a folder named "tesseract" next to this
-# file (see README). An "exiftool" folder is added too if it exists.
+# Release: zip the folder and upload the zip to a GitHub release:
+#     Compress-Archive -Path dist\DocToolkit -DestinationPath DocToolkit-1.0.0-windows.zip -Force
+#
+# Before the first build, copy Tesseract into the project and keep only the
+# languages DocToolkit uses (this changes the copy, not Program Files):
+#     Copy-Item -Recurse "C:\Program Files\Tesseract-OCR" tesseract
+#     Get-ChildItem tesseract\tessdata\*.traineddata | Where-Object { $_.BaseName -notin 'eng','ara','osd' } | Remove-Item
+# An "exiftool" folder (exiftool.exe + exiftool_files) is packed in too if it exists.
 import re
 import sys
 from pathlib import Path
@@ -28,6 +34,7 @@ if missing:
 
 datas = [
     (str(tesseract), "tesseract"),
+    (str(ROOT / "app" / "assets"), "app/assets"),
     (str(ROOT / "LICENSE"), "."),
     (str(ROOT / "THIRD-PARTY-NOTICES.md"), "."),
 ]
@@ -59,7 +66,7 @@ if sys.platform == "win32":
         ],
     )
 
-icon = ROOT / "app" / "icon.ico"  # optional: add an icon file here and it's used automatically
+icon = ROOT / "app" / "assets" / "icon.ico"
 
 a = Analysis(
     [str(ROOT / "main.py")],

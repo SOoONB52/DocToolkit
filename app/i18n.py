@@ -1,0 +1,267 @@
+"""All interface text in one place (English).
+
+Keeping the text here makes wording easy to change. The OCR language is
+separate: the user picks it on the Image to Text tab based on the language
+written in the picture.
+"""
+from __future__ import annotations
+
+
+def tr(key: str, **values) -> str:
+    text = EN.get(key, key)
+    return text.format(**values) if values else text
+
+
+EN = {
+    # --- window, menus, tabs ---
+    "ready": "Ready",
+    "menu_help": "Help",
+    "menu_about": "About DocToolkit",
+    "tab_metadata": "Metadata",
+    "tab_images": "Extract Images",
+    "tab_ocr": "Image to Text",
+    "tab_wordcount": "Word Count",
+    "quit_unsaved_title": "Quit without saving?",
+    "quit_unsaved": "You have metadata changes that aren't saved yet. Quit anyway and lose them?",
+    # --- common ---
+    "cancel": "Cancel",
+    "close": "Close",
+    "select_all": "Select all",
+    "select_none": "Select none",
+    "stopping": "Stopping after the current item…",
+    "password_needed": "Password needed",
+    "password_prompt": "{name} is password-protected.\nEnter its password:",
+    "could_not_read": "Could not read file",
+    "could_not_read_msg": "{name} could not be read.\n\n{error}",
+    "filter_pdf_docx": "PDF and Word files (*.pdf *.docx)",
+    "filter_pdf": "PDF files (*.pdf)",
+    "could_not_save": "Could not save",
+    "could_not_save_msg": "The file could not be saved.\n\n{error}",
+    "saved_file": "Saved to {path}",
+    # --- about ---
+    "about_title": "About DocToolkit",
+    "about_version": "Version {version}",
+    "about_desc": "An offline toolkit for PDF and Word files: edit metadata, extract images, "
+                  "read text from images and count words. Everything runs on "
+                  "your computer; no files are uploaded.",
+    "developed_by": "Developed by Tariq Alanazi",
+    "email_label": "Email:",
+    "about_credits": "Built with open-source software: Tesseract OCR, PySide6 (Qt), pikepdf (qpdf), "
+                     "pypdfium2 (PDFium), lxml and Pillow. The optional metadata report uses ExifTool.",
+    # --- crop dialog ---
+    "crop_title": "Crop before extracting",
+    "crop_hint": "Drag a box around the text you want. Leave empty to use the whole image.",
+    "crop_use": "Use selection",
+    # --- extract images tab ---
+    "img_add": "Add PDF or Word file…",
+    "img_add_dialog": "Add PDF or Word file",
+    "img_empty": "Drop PDF or Word (.docx) files here\nor use Add PDF or Word file\n\n"
+                 "The original files are only read, never changed.",
+    "img_clear": "Clear list",
+    "img_save": "Save selected images…",
+    "reading_file": "Reading {name} ({done} of {total})",
+    "tiny_skipped": " ({count} tiny image(s) skipped)",
+    "found_images": "Found {count} image(s) in {name}{note}",
+    "no_images_title": "No images found",
+    "no_images_pages": "{name} has no images inside.\n\nSave each page as an image instead?",
+    "no_images_in": "No images found in {name}",
+    "images_selected": "{selected} of {total} images selected",
+    "choose_folder": "Choose a folder to save images in",
+    "save_problems_title": "Some images could not be saved",
+    "save_problems": "Saved {saved} image(s).\n\nProblems:\n{problems}",
+    "saved_to": "Saved {saved} image(s) to {folder}",
+    # --- image to text tab ---
+    "ocr_add_images": "Add images…",
+    "ocr_add_images_dialog": "Add images",
+    "ocr_add_pdf": "Add PDF…",
+    "ocr_add_pdf_dialog": "Add PDF",
+    "ocr_crop": "Crop…",
+    "ocr_crop_tip": "Cut the highlighted image down to the part you care about (helps small text).",
+    "ocr_uncrop": "Uncrop",
+    "ocr_uncrop_tip": "Undo the crop and use the whole image again. Keeps the image in the list.",
+    "ocr_remove": "Remove selected",
+    "ocr_empty": "Drop images, folders or PDF files here\nor use Add images / Add PDF\n\n"
+                 "Tip: select images and press Delete to remove them",
+    "ocr_lang_label": "Language of the text in the image:",
+    "ocr_lang_hint": "Pick the language written in the picture: English text → English, "
+                     "Arabic text → Arabic. Picking the wrong one gives wrong results. "
+                     "This does not change the app's language.",
+    "lang_english": "English",
+    "lang_arabic": "Arabic",
+    "ocr_enhance": "Auto-enhance",
+    "ocr_enhance_tip": "Cleans up images before reading them: handles dark mode, small text and noisy photos.\n"
+                       "Turn off if results look worse for a particular image.",
+    "ocr_extract": "Extract text from selected",
+    "ocr_placeholder": "Tick the images you want, then click Extract text from selected.\n"
+                       "The text appears here, and you can edit it before saving.",
+    "ocr_copy": "Copy all",
+    "ocr_save": "Save as .txt…",
+    "ocr_save_dialog": "Save as .txt",
+    "ocr_clear": "Clear",
+    "filter_images": "Images ({patterns})",
+    "filter_txt": "Text files (*.txt)",
+    "added_images": "Added {count} image(s)",
+    "already_in_list": "{name} is already in the list",
+    "reading_pdf_page": "Reading {name}, page {page} of {total}",
+    "reading_image": "Reading {index} of {total}: {name}",
+    "added_from_pdf": "Added {count} image(s) from {name}{note}",
+    "no_images_textpdf": "{name} has no images inside (it may be a text-only PDF).\n\n"
+                         "Add each page as an image instead?",
+    "could_not_open_pdf": "Could not open PDF",
+    "nothing_highlighted": "Nothing highlighted",
+    "click_image_first": "Click an image in the list first, then Crop.",
+    "using_whole": "Using the whole image",
+    "cropped_name": "Cropped {name}",
+    "uncropped": "Uncropped {count} image(s)",
+    "nothing_to_uncrop": "Nothing to uncrop",
+    "highlight_cropped": "Highlight a cropped image (marked ✂) first.",
+    "tess_not_found_title": "Tesseract not found",
+    "tess_not_found": "The OCR engine (Tesseract) could not be found.\nInstall it, or reinstall DocToolkit.",
+    "tess_error_title": "Tesseract error",
+    "tess_error": "Tesseract could not start.\n\n{error}",
+    "lang_missing_title": "Language not installed",
+    "lang_missing": "These Tesseract languages are missing: {langs}.\n"
+                    "Pick another language or install the missing language data.",
+    "ocr_stopped": "Stopped: extracted text from {done} of {total} images",
+    "ocr_done": "Extracted text from {count} image(s)",
+    "extraction_failed": "Extraction failed",
+    "copied": "Copied all text",
+    # --- metadata tab ---
+    "meta_open": "Open PDF or Word file…",
+    "meta_open_dialog": "Open PDF or Word file",
+    "meta_none": "No file open. Open or drop a PDF or Word (.docx) file.",
+    "meta_empty": "Open or drop a PDF or Word (.docx) file to see its metadata.",
+    "meta_sections": "Metadata sections",
+    "meta_hint": "Open a section to see and edit its values. Your edits are kept until you "
+                 "click Save changes, so you can change several sections and save once.",
+    "meta_open_section": "Open…",
+    "meta_tags": "{count} tags",
+    "meta_lazy": "Loads when opened",
+    "meta_modified": "Modified ({count})",
+    "meta_needs_fixing": "{count} value(s) need fixing",
+    "meta_unsaved": "Unsaved changes",
+    "meta_sync": "Keep matching Info and XMP values the same",
+    "meta_sync_tip": "When you change a value in one section (for example Info / Author), the matching "
+                     "value in the other section (XMP / Creator) gets the same change, unless you "
+                     "changed both yourself. Most PDF readers show the XMP value, so this stops them "
+                     "from showing an old one.",
+    "meta_saving": "Saving",
+    "meta_copy": "Save a copy (adds “-modified” to the name)",
+    "meta_overwrite": "Overwrite the original file",
+    "meta_file_dates": "Also set the file's Windows dates (File Explorer) to the document's created / modified dates",
+    "meta_file_dates_tip": "Windows keeps its own Date created / Date modified for every file, separate from "
+                           "the dates stored inside the document. Tick this so both show the same dates.",
+    "meta_save": "Save changes",
+    "meta_discard": "Discard changes",
+    "meta_clear": "Clear all metadata",
+    "meta_discard_title": "Discard unsaved changes?",
+    "meta_discard_msg": "You have metadata changes in {name} that aren't saved yet. Discard them?",
+    "meta_fix_title": "Some values need fixing",
+    "meta_fix_msg": "Fix these values before saving:\n\n{problems}",
+    "copy_note": "The original file was not changed. Your changes are in the copy above.",
+    "file_dates_partial": "The document's dates were saved, and File Explorer's Date modified was set. "
+                          "Date created can only be changed on Windows.",
+    "file_dates_failed": "The document was saved, but the Windows file dates could not be changed.\n\n{error}",
+    "opened": "Opened {name}",
+    "unsupported_title": "Unsupported file",
+    "unsupported": "Please choose a .pdf or .docx file.",
+    "nothing_changed_title": "Nothing changed",
+    "nothing_changed": "No values were edited.",
+    "clear_confirm_title": "Clear all metadata?",
+    "clear_confirm": "This removes author, title, dates, software names, company and other metadata.\n\n"
+                     "{mode}{unsaved}\n\nContinue?",
+    "clear_mode_overwrite": "The original will be overwritten.",
+    "clear_mode_copy": "A copy will be saved with the metadata removed.",
+    "clear_unsaved": "\n\nYour unsaved edits will be discarded.",
+    "could_not_clear": "Could not clear",
+    "done_title": "Done",
+    "saved_changes": "Saved changes",
+    "cleared_meta": "Cleared metadata",
+    "done_msg": "{action}.\n\nFile: {path}{note}",
+    "status_saved": "{action} → {name}",
+    # --- metadata sections ---
+    "sec_pdf": "PDF",
+    "sec_pdf_desc": "Facts about the file and its Info dictionary",
+    "sec_xmp": "XMP",
+    "sec_xmp_desc": "XML metadata stored inside the PDF",
+    "sec_exiftool": "ExifTool",
+    "sec_exiftool_desc": "Everything ExifTool finds in the file (read only)",
+    "sec_core": "Core properties",
+    "sec_core_desc": "Title, author, comments, dates and revision",
+    "sec_app": "Application properties",
+    "sec_app_desc": "Program, company, template, editing time and Word's statistics",
+    "sec_custom": "Custom properties",
+    "sec_custom_desc": "Extra properties added by people or programs",
+    # --- section window ---
+    "win_title": "{section} — {name}",
+    "col_tag": "Tag",
+    "col_value": "Value",
+    "win_filter": "Filter tags or values…",
+    "win_revert": "Undo my changes in this section",
+    "win_read_only": "read only",
+    "win_hint": "Double-click a value to edit it, then press Enter or Tab. Leave a value empty to remove it.",
+    "win_date_hint": "Dates look like 2026-07-17 14:05:22 +10:00. The +10:00 part is the time zone; "
+                     "leave it out to use this computer's time zone.",
+    "win_list_hint": "For several values (for example several authors), separate them with a semicolon (;).",
+    "win_stored_as": "Stored in the file as: {raw}",
+    # --- notes on read-only values ---
+    "note_structure": "This describes how the file is built, not its metadata, so it can't be changed here.",
+    "note_encrypted": "Shows whether the file has a password or permission limits. "
+                      "DocToolkit keeps the file's protection exactly as it is.",
+    "note_metadata_stream": "Shows whether the file has an XMP section. It becomes true when you add XMP values.",
+    "note_fingerprints": "The file's ID. The first part never changes. The second part is renewed "
+                         "every time the file is saved, as the PDF standard asks, to mark a new version.",
+    "note_statistic": "Word recalculates this number itself the next time the document is saved in Word.",
+    "note_complex": "This value has a complex structure, so it's shown read only.",
+    "note_other_type": "This value isn't plain text, so it's shown read only.",
+    "note_language": "The document's main language (for example en or ar). Screen readers use it.",
+    "msg_no_xmp": "This file has no XMP metadata yet. Values you type here will create it.",
+    "msg_bad_xmp": "The XMP metadata in this file is damaged, so it's shown read only.",
+    "msg_no_part": "This file has no {part} part, so these properties can't be edited here.",
+    "msg_no_custom": "This file has no custom properties.",
+    "exif_missing": "ExifTool isn't installed, so this report isn't available. Everything else in "
+                    "DocToolkit works without it.<br><br>To turn it on, download the Windows version from "
+                    "<a href=\"https://exiftool.org\">exiftool.org</a>, rename "
+                    "<b>exiftool(-k).exe</b> to <b>exiftool.exe</b>, and put it together with its "
+                    "<b>exiftool_files</b> folder in a folder named <b>exiftool</b> next to main.py.",
+    "exif_failed": "ExifTool could not read this file.<br><br>{error}",
+    "exif_note": "ExifTool is only used to read. To change a value, use the other sections.",
+    # --- value problems ---
+    "invalid_date": "“{value}” is not a date DocToolkit understands. Use YYYY-MM-DD HH:MM:SS, "
+                    "optionally followed by a time zone like +10:00.",
+    "invalid_number": "“{value}” is not a whole number.",
+    "invalid_decimal": "“{value}” is not a number.",
+    "invalid_bool": "Use true or false.",
+    # --- errors ---
+    "err_locked": "The file is open in another program or is read-only. Close it (for example in "
+                  "Word or your PDF reader) and try again.",
+    "err_bad_pdf": "This isn't a valid PDF, or it is damaged.",
+    "err_bad_docx": "This isn't a valid Word (.docx) file. It may be damaged, or it may be an old "
+                    ".doc file that was renamed to .docx.",
+    "err_details": "{message}\n\nDetails: {error}",
+    # --- word count tab ---
+    "wc_open": "Open PDF or Word file…",
+    "wc_open_dialog": "Open PDF or Word file",
+    "wc_none": "No file open. Open or drop a PDF or Word (.docx) file to count its words.",
+    "wc_page_blank": "Page {page} — no text",
+    "wc_docx_approx": "Page numbers for this Word file are approximate: they come from the page breaks "
+                      "Word saved in the file, and the pictures are text previews. If Microsoft Word is "
+                      "installed, DocToolkit shows the exact pages and real page pictures.",
+    "wc_file": "{name} — {pages} page(s)",
+    "wc_page_item": "Page {page} — {words} words",
+    "wc_page_scanned": "Page {page} — no text found (may be a scanned image)",
+    "wc_total_words": "Words",
+    "wc_total_chars": "Characters (no spaces)",
+    "wc_total_pages": "Selected pages",
+    "wc_pages_value": "{pages} of {total}",
+    "wc_scanned_note": "{count} page(s) have no text layer (probably scanned), so their words "
+                       "can't be counted here. Use Image to Text for those pages.",
+    "wc_range": "Select pages:",
+    "wc_range_ph": "e.g. 1-5, 8, 10-12",
+    "wc_apply": "Apply",
+    "wc_range_bad_title": "Invalid page range",
+    "wc_range_bad": "Couldn't understand “{text}”. Use page numbers and ranges like 1-5, 8.",
+    "wc_copy": "Copy summary",
+    "wc_copied": "Summary copied",
+    "wc_summary": "File: {name}\nSelected pages: {pages}\nWords: {words}\nCharacters (no spaces): {chars}",
+}

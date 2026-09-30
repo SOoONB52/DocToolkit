@@ -1,0 +1,19 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# build output (DocToolkit.spec and installer.iss are kept: they are the build recipes)
+build/
+dist/
+installer/
+
+# programs bundled into the app; they are copied in before building, not stored in git
+tesseract/
+exiftool/
+
+# temporary files
+files.txt
+*.zip
+.doctoolkit-*

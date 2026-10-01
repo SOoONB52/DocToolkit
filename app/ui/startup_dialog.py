@@ -1,4 +1,3 @@
-"""Startup screen: app name, version and developer credit."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt

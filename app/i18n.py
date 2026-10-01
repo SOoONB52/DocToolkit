@@ -1,9 +1,3 @@
-"""All interface text in one place (English).
-
-Keeping the text here makes wording easy to change. The OCR language is
-separate: the user picks it on the Image to Text tab based on the language
-written in the picture.
-"""
 from __future__ import annotations
 
 
@@ -13,7 +7,6 @@ def tr(key: str, **values) -> str:
 
 
 EN = {
-    # --- window, menus, tabs ---
     "ready": "Ready",
     "menu_help": "Help",
     "menu_about": "About DocToolkit",
@@ -23,7 +16,6 @@ EN = {
     "tab_wordcount": "Word Count",
     "quit_unsaved_title": "Quit without saving?",
     "quit_unsaved": "You have metadata changes that aren't saved yet. Quit anyway and lose them?",
-    # --- common ---
     "cancel": "Cancel",
     "close": "Close",
     "select_all": "Select all",
@@ -38,7 +30,6 @@ EN = {
     "could_not_save": "Could not save",
     "could_not_save_msg": "The file could not be saved.\n\n{error}",
     "saved_file": "Saved to {path}",
-    # --- about ---
     "about_title": "About DocToolkit",
     "about_version": "Version {version}",
     "about_desc": "An offline toolkit for PDF and Word files: edit metadata, extract images, "
@@ -48,11 +39,9 @@ EN = {
     "email_label": "Email:",
     "about_credits": "Built with open-source software: Tesseract OCR, PySide6 (Qt), pikepdf (qpdf), "
                      "pypdfium2 (PDFium), lxml and Pillow. The optional metadata report uses ExifTool.",
-    # --- crop dialog ---
     "crop_title": "Crop before extracting",
     "crop_hint": "Drag a box around the text you want. Leave empty to use the whole image.",
     "crop_use": "Use selection",
-    # --- extract images tab ---
     "img_add": "Add PDF or Word file…",
     "img_add_dialog": "Add PDF or Word file",
     "img_empty": "Drop PDF or Word (.docx) files here\nor use Add PDF or Word file\n\n"
@@ -70,7 +59,6 @@ EN = {
     "save_problems_title": "Some images could not be saved",
     "save_problems": "Saved {saved} image(s).\n\nProblems:\n{problems}",
     "saved_to": "Saved {saved} image(s) to {folder}",
-    # --- image to text tab ---
     "ocr_add_images": "Add images…",
     "ocr_add_images_dialog": "Add images",
     "ocr_add_pdf": "Add PDF…",
@@ -126,7 +114,6 @@ EN = {
     "ocr_done": "Extracted text from {count} image(s)",
     "extraction_failed": "Extraction failed",
     "copied": "Copied all text",
-    # --- metadata tab ---
     "meta_open": "Open PDF or Word file…",
     "meta_open_dialog": "Open PDF or Word file",
     "meta_none": "No file open. Open or drop a PDF or Word (.docx) file.",
@@ -179,7 +166,6 @@ EN = {
     "cleared_meta": "Cleared metadata",
     "done_msg": "{action}.\n\nFile: {path}{note}",
     "status_saved": "{action} → {name}",
-    # --- metadata sections ---
     "sec_pdf": "PDF",
     "sec_pdf_desc": "Facts about the file and its Info dictionary",
     "sec_xmp": "XMP",
@@ -192,7 +178,6 @@ EN = {
     "sec_app_desc": "Program, company, template, editing time and Word's statistics",
     "sec_custom": "Custom properties",
     "sec_custom_desc": "Extra properties added by people or programs",
-    # --- section window ---
     "win_title": "{section} — {name}",
     "col_tag": "Tag",
     "col_value": "Value",
@@ -204,7 +189,6 @@ EN = {
                      "leave it out to use this computer's time zone.",
     "win_list_hint": "For several values (for example several authors), separate them with a semicolon (;).",
     "win_stored_as": "Stored in the file as: {raw}",
-    # --- notes on read-only values ---
     "note_structure": "This describes how the file is built, not its metadata, so it can't be changed here.",
     "note_encrypted": "Shows whether the file has a password or permission limits. "
                       "DocToolkit keeps the file's protection exactly as it is.",
@@ -226,20 +210,17 @@ EN = {
                     "<b>exiftool_files</b> folder in a folder named <b>exiftool</b> next to main.py.",
     "exif_failed": "ExifTool could not read this file.<br><br>{error}",
     "exif_note": "ExifTool is only used to read. To change a value, use the other sections.",
-    # --- value problems ---
     "invalid_date": "“{value}” is not a date DocToolkit understands. Use YYYY-MM-DD HH:MM:SS, "
                     "optionally followed by a time zone like +10:00.",
     "invalid_number": "“{value}” is not a whole number.",
     "invalid_decimal": "“{value}” is not a number.",
     "invalid_bool": "Use true or false.",
-    # --- errors ---
     "err_locked": "The file is open in another program or is read-only. Close it (for example in "
                   "Word or your PDF reader) and try again.",
     "err_bad_pdf": "This isn't a valid PDF, or it is damaged.",
     "err_bad_docx": "This isn't a valid Word (.docx) file. It may be damaged, or it may be an old "
                     ".doc file that was renamed to .docx.",
     "err_details": "{message}\n\nDetails: {error}",
-    # --- word count tab ---
     "wc_open": "Open PDF or Word file…",
     "wc_open_dialog": "Open PDF or Word file",
     "wc_none": "No file open. Open or drop a PDF or Word (.docx) file to count its words.",

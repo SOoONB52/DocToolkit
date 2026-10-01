@@ -1,4 +1,3 @@
-"""Word Count tab: open a PDF or Word file, see its pages, choose pages, count their words."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -48,7 +47,6 @@ def _is_rtl(text: str) -> bool:
 
 
 def page_icon(path: str) -> QIcon:
-    """The rendered page with a thin border, so white pages don't vanish into the list."""
     image = QImage(path)
     if image.isNull():
         return QIcon()
@@ -61,7 +59,6 @@ def page_icon(path: str) -> QIcon:
 
 
 def preview_icon(text: str) -> QIcon:
-    """A small page drawn from the page's text, for Word files paginated without Word."""
     image = QImage(170, 240, QImage.Format_RGB32)
     image.fill(QColor("white"))
     painter = QPainter(image)
@@ -154,7 +151,6 @@ class WordCountTab(QWidget):
         self.pages_value = QLabel("0")
         totals = QGroupBox()
         form = QFormLayout(totals)
-        # keep each number right next to its label (in both directions)
         form.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
         form.setFormAlignment(Qt.AlignLeading | Qt.AlignTop)
         form.setLabelAlignment(Qt.AlignLeading | Qt.AlignVCenter)
@@ -197,7 +193,6 @@ class WordCountTab(QWidget):
         self.progress_label.setVisible(busy)
         self.progress_bar.setVisible(busy)
 
-    # --- loading ---
     def choose_file(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, tr("wc_open_dialog"), "", tr("filter_pdf_docx"))
         if path:
@@ -266,7 +261,6 @@ class WordCountTab(QWidget):
             return
         QMessageBox.warning(self, tr("could_not_read"), tr("could_not_read_msg", name=name, error=exc))
 
-    # --- selection ---
     def set_all(self, checked: bool) -> None:
         state = Qt.Checked if checked else Qt.Unchecked
         self.page_list.blockSignals(True)
@@ -322,7 +316,6 @@ class WordCountTab(QWidget):
         self.status(tr("wc_copied"))
 
     def shutdown(self) -> bool:
-        """Stop background work and delete temporary files. False if a job is still running."""
         stopped = stop_job(self._job, self._thread)
         shutil.rmtree(self._temp.name, ignore_errors=True)
         return stopped

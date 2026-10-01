@@ -1,9 +1,3 @@
-"""A window that shows one metadata section as a Tag / Value table.
-
-Edits are kept in the Metadata tab's list of pending changes as soon as a
-value is typed (press Enter or Tab, or click elsewhere). Nothing is written to
-the file until the user clicks Save changes on the Metadata tab.
-"""
 from __future__ import annotations
 
 import html
@@ -35,7 +29,6 @@ def is_dark(widget: QWidget) -> bool:
 
 
 def status_colors(widget: QWidget) -> dict[str, QColor]:
-    """Colours that read well on both light and dark Windows themes."""
     if is_dark(widget):
         return {"changed": QColor("#ffb74d"), "error": QColor("#ff8a80"),
                 "changed_bg": QColor(255, 183, 77, 55), "error_bg": QColor(255, 138, 128, 70)}
@@ -44,7 +37,7 @@ def status_colors(widget: QWidget) -> dict[str, QColor]:
 
 
 class SectionWindow(QDialog):
-    edited = Signal(str)  # section id
+    edited = Signal(str)
 
     def __init__(self, section: Section, changes: dict[str, str], file_name: str, parent=None) -> None:
         super().__init__(parent)
@@ -114,9 +107,7 @@ class SectionWindow(QDialog):
 
         self.set_section(section, changes, file_name)
 
-    # --- filling ------------------------------------------------------------
     def set_section(self, section: Section, changes: dict[str, str], file_name: str | None = None) -> None:
-        """Show a section. Also used to refresh the window after a save."""
         self._section = section
         self._changes = changes
         if file_name:
@@ -147,7 +138,7 @@ class SectionWindow(QDialog):
         for row, entry in enumerate(section.entries):
             can_edit = entry.editable and not section.read_only
             key_line = entry.key if entry.key != entry.tag else ""
-            if not can_edit and not section.read_only:  # a read-only section says so once, at the top
+            if not can_edit and not section.read_only:
                 key_line = f"{key_line} ({tr('win_read_only')})" if key_line else tr("win_read_only")
             tag_label = QLabel(
                 f"<b>{html.escape(entry.tag)}</b>"
@@ -156,7 +147,7 @@ class SectionWindow(QDialog):
             tag_label.setTextFormat(Qt.RichText)
             tag_label.setContentsMargins(6, 4, 6, 4)
             tag_label.setToolTip(entry.note)
-            tag_item = QTableWidgetItem()  # empty: the label above draws the tag
+            tag_item = QTableWidgetItem()
             tag_item.setFlags(Qt.ItemIsEnabled)
             self.table.setItem(row, 0, tag_item)
             self.table.setCellWidget(row, 0, tag_label)
@@ -192,7 +183,6 @@ class SectionWindow(QDialog):
             tips.append(tr("win_stored_as", raw=entry.raw))
         item.setToolTip("\n\n".join(tips))
 
-    # --- editing -------------------------------------------------------------
     def _on_item_changed(self, item: QTableWidgetItem) -> None:
         if self._filling or item.column() != 1:
             return
@@ -208,7 +198,6 @@ class SectionWindow(QDialog):
         self.edited.emit(self._section.id)
 
     def commit_edit(self) -> None:
-        """Finish a value that is still being typed (as if Enter was pressed)."""
         self.table.setCurrentItem(None)
 
     def revert(self) -> None:
@@ -225,12 +214,10 @@ class SectionWindow(QDialog):
             self.table.setRowHidden(row, bool(needle) and needle not in haystack)
 
     def done(self, result: int) -> None:
-        # Called for Close, the window's X button and Esc: keep what was typed.
         self.commit_edit()
         super().done(result)
 
     def keyPressEvent(self, event) -> None:
-        # Esc closes the window (edits are already kept); Enter never does.
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
             return
         super().keyPressEvent(event)

@@ -1,4 +1,3 @@
-"""Main window: four tool tabs and a Help menu."""
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 

@@ -1,8 +1,3 @@
-"""Image to Text tab.
-
-Add images or PDFs, tick the ones you want, extract their text (English/Arabic),
-edit if needed, then copy or save as .txt in the DocToolkit structure.
-"""
 from __future__ import annotations
 
 import re
@@ -46,11 +41,10 @@ PDF_EXTENSION = ".pdf"
 THUMB_SIZE = QSize(120, 80)
 PATH_ROLE = Qt.UserRole
 LABEL_ROLE = Qt.UserRole + 1
-CROP_ROLE = Qt.UserRole + 2  # path to a cropped copy, if the user made one
+CROP_ROLE = Qt.UserRole + 2
 
 
 def natural_key(path: Path):
-    """Sort '1 (2).png' before '1 (10).png'."""
     return [int(part) if part.isdigit() else part.lower() for part in re.split(r"(\d+)", str(path))]
 
 
@@ -65,7 +59,6 @@ def load_thumbnail(path: str) -> QIcon:
 
 
 def starts_right_to_left(text: str) -> bool:
-    """True if the first letter in the line is Arabic (or another RTL script)."""
     for ch in text:
         direction = unicodedata.bidirectional(ch)
         if direction in ("R", "AL"):
@@ -76,8 +69,6 @@ def starts_right_to_left(text: str) -> bool:
 
 
 class ImageListWidget(QListWidget):
-    """Checkable list of images. Accepts dropped images, folders and PDFs."""
-
     pdfs_dropped = Signal(list)
 
     def __init__(self) -> None:
@@ -132,7 +123,6 @@ class ImageListWidget(QListWidget):
         return True
 
     def add_image_paths(self, paths) -> int:
-        """Add image files, or every image inside a folder."""
         added = 0
         for raw in paths:
             p = Path(raw)
@@ -154,7 +144,6 @@ class ImageListWidget(QListWidget):
             )
 
 
-# --- background job functions (run in the worker thread) -------------------
 def pdf_job(job: Job, pdf_path: str, out_dir: str, password: str | None, mode: str):
     name = Path(pdf_path).name
     action = extract_images if mode == "images" else render_pages
@@ -189,11 +178,10 @@ class OcrTab(QWidget):
         self._crop_counter = 0
         self._job: Job | None = None
         self._thread = None
-        self._pdf_queue: list[tuple[str, str | None, str]] = []  # (path, password, mode)
+        self._pdf_queue: list[tuple[str, str | None, str]] = []
         self._current_pdf: tuple[str, str | None, str] | None = None
         self._added_pdfs: set[str] = set()
 
-        # --- left: choose images ---
         self.image_list = ImageListWidget()
         self.image_list.pdfs_dropped.connect(self.add_pdfs)
         self.image_list.itemChanged.connect(self.update_counts)
@@ -266,7 +254,6 @@ class OcrTab(QWidget):
         left_layout.addWidget(self.progress_label)
         left_layout.addLayout(row_progress)
 
-        # --- right: results ---
         self.output = QTextEdit()
         self.output.setAcceptRichText(False)
         self.output.setPlaceholderText(tr("ocr_placeholder"))
@@ -300,7 +287,6 @@ class OcrTab(QWidget):
         self.update_counts()
         self.update_output_buttons()
 
-    # --- helpers -----------------------------------------------------------
     def status(self, message: str) -> None:
         window = self.window()
         if isinstance(window, QMainWindow):
@@ -340,7 +326,6 @@ class OcrTab(QWidget):
             self._job.cancel()
             self.progress_label.setText(tr("stopping"))
 
-    # --- adding and choosing ------------------------------------------------
     def choose_images(self) -> None:
         patterns = " ".join(f"*{ext}" for ext in sorted(IMAGE_EXTENSIONS))
         files, _ = QFileDialog.getOpenFileNames(self, tr("ocr_add_images_dialog"), "", tr("filter_images", patterns=patterns))
@@ -425,7 +410,6 @@ class OcrTab(QWidget):
             return
         cropped = dialog.cropped_image()
         if cropped is None:
-            # user selected nothing: clear any previous crop, use whole image
             item.setData(CROP_ROLE, None)
             self._reset_thumb(item, item.data(PATH_ROLE))
             self._mark_cropped(item, False)
@@ -486,7 +470,6 @@ class OcrTab(QWidget):
         self.count_label.setText(tr("images_selected", selected=selected, total=total))
         self.extract_btn.setEnabled(selected > 0 and not self.is_busy())
 
-    # --- OCR ------------------------------------------------------------------
     def extract_selected(self) -> None:
         if self.is_busy():
             return
@@ -522,7 +505,6 @@ class OcrTab(QWidget):
         cursor = QTextCursor(doc)
         cursor.movePosition(QTextCursor.End)
         cursor.insertText(prefix + ocr.format_block(label, text))
-        # Arabic lines right-to-left, everything else left-to-right.
         block = doc.findBlockByNumber(first_new_block)
         while block.isValid():
             fmt = block.blockFormat()
@@ -543,7 +525,6 @@ class OcrTab(QWidget):
         self.job_ended()
         QMessageBox.warning(self, tr("extraction_failed"), str(exc))
 
-    # --- results ------------------------------------------------------------------
     def update_output_buttons(self) -> None:
         has_text = bool(self.output.toPlainText().strip())
         self.copy_btn.setEnabled(has_text)
@@ -568,9 +549,7 @@ class OcrTab(QWidget):
             return
         self.status(tr("saved_file", path=path))
 
-    # --- closing ------------------------------------------------------------------
     def shutdown(self) -> bool:
-        """Stop background work and delete temporary files. False if a job is still running."""
         self._pdf_queue.clear()
         stopped = stop_job(self._job, self._thread)
         shutil.rmtree(self._temp.name, ignore_errors=True)

@@ -1,15 +1,3 @@
-"""Read a full metadata report with ExifTool (optional).
-
-ExifTool (https://exiftool.org, by Phil Harvey) is free, open-source software.
-DocToolkit only uses it to READ. It never writes with it, because ExifTool
-edits PDFs by appending an update, which leaves the old values recoverable
-inside the file. DocToolkit's own saving rewrites the whole file instead.
-
-Where DocToolkit looks for it, in order:
-1. an "exiftool" folder next to main.py (or inside the installed app)
-2. anywhere on PATH
-3. the usual Windows install folders
-"""
 from __future__ import annotations
 
 import json
@@ -55,22 +43,18 @@ def _text(value) -> str:
 
 
 def read_report(path: str) -> list[tuple[str, str]]:
-    """[(tag, value), ...] in ExifTool's order, e.g. ('XMP-dc:Creator', 'Atabak Elmi')."""
     exe = find_exiftool()
     if not exe:
         raise ExifToolMissing()
 
-    # The file name goes in a UTF-8 "argument file" so names with Arabic or
-    # other non-English letters work on Windows.
     fd, argfile = tempfile.mkstemp(suffix=".args", prefix="doctoolkit-")
     with os.fdopen(fd, "w", encoding="utf-8") as handle:
         handle.write(str(Path(path).resolve()) + "\n")
     command = [exe, "-charset", "filename=utf8", "-json", "-G1", "-a", "-@", argfile]
     extra = {}
     if sys.platform == "win32":
-        extra["creationflags"] = subprocess.CREATE_NO_WINDOW  # no black console window
+        extra["creationflags"] = subprocess.CREATE_NO_WINDOW
     try:
-        # stdin=DEVNULL: the .exe has no console, and without it Windows says "the handle is invalid"
         result = subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True,
                                 timeout=TIMEOUT_SECONDS, **extra)
     finally:
@@ -82,7 +66,6 @@ def read_report(path: str) -> list[tuple[str, str]]:
     if not output:
         message = result.stderr.decode("utf-8", "replace").strip() or f"exit code {result.returncode}"
         raise RuntimeError(message)
-    # object_pairs_hook keeps repeated tag names (the -a option can list a tag twice)
     records = json.loads(output, object_pairs_hook=list)
     pairs = records[0] if records else []
     return [(tag, _text(value)) for tag, value in pairs if tag != "SourceFile"]

@@ -1,9 +1,3 @@
-"""Extract Images tab.
-
-Add PDF or Word (.docx) files, see the images inside them, tick the ones you
-want, and save them to a folder you choose. The source files are only read,
-never changed.
-"""
 from __future__ import annotations
 
 import shutil
@@ -330,7 +324,6 @@ class ImagesTab(QWidget):
             self.progress_label.setText(tr("stopping"))
 
     def shutdown(self) -> bool:
-        """Stop background work and delete temporary files. False if a job is still running."""
         self._queue.clear()
         stopped = stop_job(self._job, self._thread)
         shutil.rmtree(self._temp.name, ignore_errors=True)

@@ -1,8 +1,3 @@
-"""A simple crop dialog: show an image, drag a rectangle, return the crop.
-
-Everything stays on the user's machine. Used before OCR to cut a screenshot
-down to the part that matters, which is what makes small text readable.
-"""
 from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QRect, Qt
@@ -20,8 +15,6 @@ from PySide6.QtWidgets import (
 
 
 class CropCanvas(QWidget):
-    """Displays the image (fit to view) and lets the user drag a selection box."""
-
     def __init__(self, image: QImage) -> None:
         super().__init__()
         self._image = image
@@ -45,7 +38,7 @@ class CropCanvas(QWidget):
 
     def resizeEvent(self, event):
         self._rebuild()
-        self._rect = QRect()  # a resize clears the selection
+        self._rect = QRect()
         super().resizeEvent(event)
 
     def paintEvent(self, event):
@@ -55,7 +48,6 @@ class CropCanvas(QWidget):
             self._rebuild()
         painter.drawPixmap(self._offset, self._scaled)
         if not self._rect.isNull():
-            # outline the selection
             painter.setBrush(Qt.NoBrush)
             pen = QPen(Qt.red, 2)
             painter.setPen(pen)
@@ -83,7 +75,6 @@ class CropCanvas(QWidget):
         self._start = None
 
     def crop_rect(self) -> QRect | None:
-        """The selection in original-image pixels, or None if nothing usable is selected."""
         if self._rect.isNull() or self._rect.width() < 5 or self._rect.height() < 5:
             return None
         x = round((self._rect.left() - self._offset.x()) / self._scale)
@@ -101,8 +92,6 @@ class CropDialog(QDialog):
         self.resize(900, 640)
         self._result: QImage | None = None
 
-        # Phone photos store "rotate 90°" as a setting; apply it so the picture
-        # is upright here and the cropped part is sent to OCR the right way up.
         reader = QImageReader(image_path)
         reader.setAutoTransform(True)
         self._image = reader.read()
@@ -133,5 +122,4 @@ class CropDialog(QDialog):
         self.accept()
 
     def cropped_image(self) -> QImage | None:
-        """The cropped region, or None if the user selected nothing (use the whole image)."""
         return self._result

@@ -1,4 +1,3 @@
-"""OCR helpers: find Tesseract, clean up images, extract text, format output."""
 from __future__ import annotations
 
 import os
@@ -20,14 +19,12 @@ SEP_MINOR = "-" * 70
 OCR_TIMEOUT_SECONDS = 180
 
 
-# --- Tesseract location --------------------------------------------------
 def _bundled_tesseract() -> Path:
     app_root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
     return app_root / "tesseract" / "tesseract.exe"
 
 
 def find_tesseract() -> str | None:
-    """Bundled copy first (packaged app), then PATH, then the default install folder."""
     candidates = [_bundled_tesseract()]
     on_path = shutil.which("tesseract")
     if on_path:
@@ -45,8 +42,6 @@ def setup_tesseract() -> str | None:
         pytesseract.pytesseract.tesseract_cmd = path
         tessdata = Path(path).parent / "tessdata"
         if Path(path) == _bundled_tesseract() and tessdata.is_dir():
-            # Use the bundled language files, even if another Tesseract on this
-            # computer set TESSDATA_PREFIX to its own folder.
             os.environ["TESSDATA_PREFIX"] = str(tessdata)
     return path
 
@@ -56,9 +51,7 @@ def missing_languages(lang_code: str) -> list[str]:
     return [code for code in lang_code.split("+") if code not in installed]
 
 
-# --- Image clean-up ("Auto-enhance") -------------------------------------
 def _flatten(img: Image.Image) -> Image.Image:
-    """Put transparent images on white and fix phone photo rotation."""
     img = ImageOps.exif_transpose(img)
     if img.mode in ("RGBA", "LA", "P"):
         rgba = img.convert("RGBA")
@@ -68,7 +61,6 @@ def _flatten(img: Image.Image) -> Image.Image:
 
 
 def _otsu(gray: Image.Image) -> Image.Image:
-    """Automatic black/white threshold."""
     hist = gray.histogram()
     total = sum(hist)
     weighted_total = sum(i * h for i, h in enumerate(hist))
@@ -89,19 +81,11 @@ def _otsu(gray: Image.Image) -> Image.Image:
 
 
 def enhance(img: Image.Image, is_photo: bool = False) -> Image.Image:
-    """Clean up a copy of the image so Tesseract reads it better.
-
-    - dark-mode screenshots are inverted to dark-on-light
-    - small images are upscaled (the smaller the text, the more it is enlarged)
-    - the result is sharpened
-    - photos (JPEG) also get noise removal and a black/white threshold
-    """
     gray = ImageOps.grayscale(_flatten(img))
     if ImageStat.Stat(gray).median[0] < 128:
         gray = ImageOps.invert(gray)
     if is_photo:
         gray = gray.filter(ImageFilter.MedianFilter(3))
-    # Aim for a longest side around 3500-4000px: tiny screenshots get enlarged most.
     longest = max(gray.size)
     factor = 1
     for candidate in (4, 3, 2):
@@ -116,7 +100,6 @@ def enhance(img: Image.Image, is_photo: bool = False) -> Image.Image:
     return gray
 
 
-# --- OCR -----------------------------------------------------------------
 def _tidy(text: str) -> str:
     lines = [line.rstrip() for line in text.replace("\f", "").splitlines()]
     text = "\n".join(lines).strip()

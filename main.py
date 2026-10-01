@@ -1,4 +1,3 @@
-"""DocToolkit entry point."""
 import os
 import sys
 
@@ -10,8 +9,6 @@ from app import ICON_ICO
 
 def main() -> int:
     if sys.platform == "win32":
-        # Group DocToolkit's windows under its own taskbar button and icon,
-        # instead of Python's, when running from source.
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("TariqAlanazi.DocToolkit")
     app = QApplication(sys.argv)
@@ -28,9 +25,7 @@ def main() -> int:
     window.show()
     code = app.exec()
     if window.jobs_still_running:
-        # A background job (for example one long OCR image) didn't stop in time.
-        # Exit right away instead of letting Qt crash while tidying it up.
-        if sys.stdout:  # None in the .exe (no console)
+        if sys.stdout:
             sys.stdout.flush()
         os._exit(code)
     return code

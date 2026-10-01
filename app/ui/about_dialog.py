@@ -1,4 +1,3 @@
-"""Help > About: app info and developer contact."""
 from __future__ import annotations
 
 from PySide6.QtCore import Qt

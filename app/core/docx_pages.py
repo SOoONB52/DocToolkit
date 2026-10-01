@@ -1,13 +1,3 @@
-"""Word (.docx) pages for the word counter.
-
-A .docx has no fixed pages: Word decides the layout when it opens the file.
-Two ways to get pages:
-
-1. Microsoft Word installed (Windows): ask Word itself, read-only. Exact pages,
-   real page pictures, and Word's own counts. See docx_word.py.
-2. Otherwise: split at the page markers Word saves in the file
-   (w:lastRenderedPageBreak, or explicit page breaks). Approximate.
-"""
 from __future__ import annotations
 
 import zipfile
@@ -20,9 +10,8 @@ MC = "{http://schemas.openxmlformats.org/markup-compatibility/2006}"
 
 
 def _walk(el, out: list, marker: str) -> None:
-    """Collect text runs and page markers in document order."""
     tag = el.tag
-    if tag == MC + "Fallback":        # duplicate of the AlternateContent choice
+    if tag == MC + "Fallback":
         return
     if tag == W + "t":
         out.append(("text", el.text or ""))
@@ -58,7 +47,6 @@ def analyse_docx_approx(path: str) -> list[PageCount]:
         else:
             current.append(value)
     pages.append("".join(current))
-    # A marker right at the start or end can create an empty page; drop those.
     while len(pages) > 1 and not pages[-1].strip():
         pages.pop()
     while len(pages) > 1 and not pages[0].strip():
@@ -75,11 +63,10 @@ def analyse_docx_approx(path: str) -> list[PageCount]:
 
 
 def analyse_docx(path: str, thumb_dir: str | None = None, progress=None, cancelled=None) -> list[PageCount]:
-    """Use Microsoft Word when it is available, otherwise the approximate method."""
     try:
         from app.core.docx_word import analyse_with_word, word_available
         if word_available():
             return analyse_with_word(path, thumb_dir, progress=progress, cancelled=cancelled)
     except Exception:
-        pass  # Word missing, blocked or failed: fall back quietly
+        pass
     return analyse_docx_approx(path)

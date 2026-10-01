@@ -1,18 +1,3 @@
-# PyInstaller recipe for DocToolkit.exe
-#
-# Build (from the project folder):
-#     venv\Scripts\pyinstaller --noconfirm --clean DocToolkit.spec
-#
-# Result: dist\DocToolkit\DocToolkit.exe  (keep the whole dist\DocToolkit folder together)
-#
-# Release: zip the folder and upload the zip to a GitHub release:
-#     Compress-Archive -Path dist\DocToolkit -DestinationPath DocToolkit-1.0.0-windows.zip -Force
-#
-# Before the first build, copy Tesseract into the project and keep only the
-# languages DocToolkit uses (this changes the copy, not Program Files):
-#     Copy-Item -Recurse "C:\Program Files\Tesseract-OCR" tesseract
-#     Get-ChildItem tesseract\tessdata\*.traineddata | Where-Object { $_.BaseName -notin 'eng','ara','osd' } | Remove-Item
-# An "exiftool" folder (exiftool.exe + exiftool_files) is packed in too if it exists.
 import re
 import sys
 from pathlib import Path
@@ -20,7 +5,6 @@ from pathlib import Path
 ROOT = Path(SPECPATH)
 VERSION = re.search(r'__version__\s*=\s*"([^"]+)"', (ROOT / "app" / "__init__.py").read_text()).group(1)
 
-# --- programs bundled inside the app ----------------------------------------
 tesseract = ROOT / "tesseract"
 missing = [p for p in ("tesseract.exe", "tessdata/eng.traineddata", "tessdata/ara.traineddata")
            if not (tesseract / p).is_file()]
@@ -29,7 +13,7 @@ if missing:
         "\nBUILD STOPPED: Tesseract isn't ready to bundle. Missing in the 'tesseract' folder: "
         + ", ".join(missing)
         + "\nCopy it with:  Copy-Item -Recurse \"C:\\Program Files\\Tesseract-OCR\" tesseract\n"
-        "(Arabic must be installed in Tesseract first. See README.)\n"
+        "(Arabic must be installed in Tesseract first. See BUILD-NOTES.md.)\n"
     )
 
 datas = [
@@ -43,7 +27,6 @@ if (ROOT / "exiftool" / "exiftool.exe").is_file():
 else:
     print("NOTE: no exiftool folder found. Building without the optional ExifTool report.")
 
-# --- file properties shown in Windows (right-click > Properties > Details) --
 version_info = None
 if sys.platform == "win32":
     from PyInstaller.utils.win32 import versioninfo as vi
@@ -72,7 +55,6 @@ a = Analysis(
     [str(ROOT / "main.py")],
     pathex=[str(ROOT)],
     datas=datas,
-    # never used by DocToolkit; excluded so they are not packed in by accident
     excludes=["tkinter", "numpy", "pandas", "scipy", "matplotlib", "IPython", "pytest"],
 )
 pyz = PYZ(a.pure)
@@ -80,10 +62,10 @@ exe = EXE(
     pyz,
     a.scripts,
     [],
-    exclude_binaries=True,       # folder build: starts fast and antivirus flags it less than one big exe
+    exclude_binaries=True,
     name="DocToolkit",
-    console=False,               # a normal window app, no black console window
-    upx=False,                   # compressing with UPX often triggers antivirus false alarms
+    console=False,
+    upx=False,
     version=version_info,
     icon=str(icon) if icon.is_file() else None,
 )

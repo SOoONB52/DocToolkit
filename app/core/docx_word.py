@@ -1,10 +1,3 @@
-"""Exact .docx pages using Microsoft Word through COM (Windows only).
-
-Word opens the file read-only and invisibly, is not added to Word's recent
-files, and closes without saving, so the original file is never touched.
-Word's own ComputeStatistics gives the counts (same as Word's status bar);
-a temporary PDF export gives the page pictures.
-"""
 from __future__ import annotations
 
 import os
@@ -26,7 +19,7 @@ def word_available() -> bool:
     try:
         import winreg
         winreg.CloseKey(winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"Word.Application\CLSID"))
-        import win32com.client  # noqa: F401  (pywin32)
+        import win32com.client
         return True
     except Exception:
         return False
@@ -36,12 +29,12 @@ def analyse_with_word(path: str, thumb_dir: str | None, progress=None, cancelled
     import pythoncom
     import win32com.client
 
-    pythoncom.CoInitialize()  # we run in a background thread
+    pythoncom.CoInitialize()
     word = doc = None
     fd, tmp_pdf = tempfile.mkstemp(suffix=".pdf")
     os.close(fd)
     try:
-        word = win32com.client.DispatchEx("Word.Application")  # private instance
+        word = win32com.client.DispatchEx("Word.Application")
         word.Visible = False
         word.DisplayAlerts = 0
         doc = word.Documents.Open(

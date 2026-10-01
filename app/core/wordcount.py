@@ -1,8 +1,3 @@
-"""Count words in PDF pages.
-
-Reads the text layer of each page with pypdfium2. Pages with no text layer
-(usually scanned images) are reported as such instead of silently counting 0.
-"""
 from __future__ import annotations
 
 import re
@@ -19,22 +14,21 @@ class PdfPasswordRequired(Exception):
     pass
 
 
-THUMB_HEIGHT = 240  # pixels; enough to be crisp in the list
+THUMB_HEIGHT = 240
 
 
 @dataclass
 class PageCount:
-    page: int              # 1-based
+    page: int
     words: int
-    chars: int             # characters excluding whitespace
+    chars: int
     has_text: bool
-    thumb: str | None = None      # picture of the page, if one could be made
-    preview_text: str = ""        # used to draw a preview when there is no picture
-    approximate: bool = False     # True for Word files paginated without Word
+    thumb: str | None = None
+    preview_text: str = ""
+    approximate: bool = False
 
 
 def count_words(text: str) -> int:
-    """Words are runs of non-space characters (how Word and most counters do it)."""
     return len(text.split())
 
 
@@ -87,10 +81,6 @@ _ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "0123
 
 
 def parse_page_range(text: str, total: int) -> set[int]:
-    """'1-5, 8, 10-12' -> {1,2,3,4,5,8,10,11,12}. Accepts Arabic digits and commas.
-
-    Raises ValueError if the text can't be understood or pages are out of range.
-    """
     cleaned = text.translate(_ARABIC_DIGITS).replace("،", ",").replace("–", "-").replace("—", "-")
     pages: set[int] = set()
     for part in cleaned.split(","):

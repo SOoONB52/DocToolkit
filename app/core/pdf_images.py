@@ -1,9 +1,3 @@
-"""Get images out of PDF files.
-
-Embedded images are extracted with pikepdf (original quality, duplicates skipped).
-Images pikepdf cannot decode fall back to rendering that page with pypdfium2.
-PDFium is not thread-safe: only call these functions from one thread at a time.
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -16,18 +10,18 @@ from pikepdf import Name, PdfImage
 
 from app.core.pdfium_lock import PDFIUM_LOCK
 
-MIN_SIDE = 20        # skip tiny images (bullets, lines, spacer pixels)
-RENDER_DPI = 300     # good resolution for OCR
+MIN_SIDE = 20
+RENDER_DPI = 300
 
 
 class PdfPasswordRequired(Exception):
-    """The PDF is encrypted and the password is missing or wrong."""
+    pass
 
 
 @dataclass
 class PdfImageItem:
-    label: str   # shown in the list and used in the FILE: header
-    path: str    # temporary PNG on disk
+    label: str
+    path: str
 
 
 @dataclass
@@ -50,7 +44,6 @@ def _open(path: Path, password: str | None) -> pikepdf.Pdf:
 
 
 def _page_resources(page_obj):
-    """Resources may be inherited from a parent node in the page tree."""
     node = page_obj
     while node is not None:
         resources = node.get("/Resources")
@@ -61,7 +54,6 @@ def _page_resources(page_obj):
 
 
 def _image_objects(resources, seen_forms: set) -> Iterator[pikepdf.Object]:
-    """Images on the page, including ones nested inside form objects."""
     if resources is None:
         return
     xobjects = resources.get("/XObject")
@@ -159,7 +151,6 @@ def render_pages(
     progress: Progress | None = None,
     cancelled: Cancelled | None = None,
 ) -> PdfExtractResult:
-    """Turn every page into an image (for scanned PDFs or PDFs without images)."""
     src = Path(pdf_path)
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)

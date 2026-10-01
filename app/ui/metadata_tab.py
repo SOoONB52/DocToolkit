@@ -1,9 +1,3 @@
-"""Metadata tab.
-
-Open a PDF or Word (.docx) file and its metadata appears as sections. Each
-section opens in its own window, where values can be edited. Edited sections
-are marked "Modified", and one click on Save changes writes every edit at once.
-"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -57,7 +51,7 @@ class MetadataTab(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self._meta: M.FileMetadata | None = None
-        self._changes: dict[str, dict[str, str]] = {}   # section id -> {key: new text}
+        self._changes: dict[str, dict[str, str]] = {}
         self._windows: dict[str, SectionWindow] = {}
         self._status_labels: dict[str, QLabel] = {}
         self._count_labels: dict[str, QLabel] = {}
@@ -69,7 +63,6 @@ class MetadataTab(QWidget):
         outer.addWidget(root)
         layout = QVBoxLayout(root)
 
-        # top bar
         open_btn = QPushButton(tr("meta_open"))
         open_btn.clicked.connect(self.choose_file)
         self.file_label = QLabel(tr("meta_none"))
@@ -79,7 +72,6 @@ class MetadataTab(QWidget):
         top.addWidget(self.file_label, 1)
         layout.addLayout(top)
 
-        # sections
         self.sections_box = QGroupBox(tr("meta_sections"))
         box_layout = QVBoxLayout(self.sections_box)
         self.hint_label = QLabel(tr("meta_hint"))
@@ -101,12 +93,11 @@ class MetadataTab(QWidget):
         box_layout.addWidget(self.sync_box)
         layout.addWidget(self.sections_box)
 
-        # save options
         self.save_box = QGroupBox(tr("meta_saving"))
         save_layout = QVBoxLayout(self.save_box)
         self.copy_radio = QRadioButton(tr("meta_copy"))
         self.overwrite_radio = QRadioButton(tr("meta_overwrite"))
-        self.copy_radio.setChecked(True)  # safer default
+        self.copy_radio.setChecked(True)
         save_layout.addWidget(self.copy_radio)
         save_layout.addWidget(self.overwrite_radio)
         self.file_dates = QCheckBox(tr("meta_file_dates"))
@@ -116,7 +107,6 @@ class MetadataTab(QWidget):
         layout.addWidget(self.save_box)
         layout.addStretch(1)
 
-        # actions
         self.clear_btn = QPushButton(tr("meta_clear"))
         self.clear_btn.clicked.connect(self.clear_all)
         self.unsaved_label = QLabel(tr("meta_unsaved"))
@@ -136,7 +126,6 @@ class MetadataTab(QWidget):
         self._build_rows()
         self._update_state()
 
-    # --- helpers -------------------------------------------------------------
     def status(self, message: str) -> None:
         window = self.window()
         if isinstance(window, QMainWindow):
@@ -153,7 +142,6 @@ class MetadataTab(QWidget):
         return bool(self._pending())
 
     def confirm_discard(self, quitting: bool = False) -> bool:
-        """True if there are no unsaved edits, or the user agrees to lose them."""
         if not self.has_unsaved_changes():
             return True
         if quitting:
@@ -164,7 +152,6 @@ class MetadataTab(QWidget):
         answer = QMessageBox.question(self, title, text, QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         return answer == QMessageBox.Yes
 
-    # --- section rows --------------------------------------------------------
     def _build_rows(self) -> None:
         while self.rows.count():
             widget = self.rows.takeAt(0).widget()
@@ -230,7 +217,6 @@ class MetadataTab(QWidget):
         self.discard_btn.setEnabled(dirty)
         self.unsaved_label.setVisible(dirty)
 
-    # --- section windows -------------------------------------------------------
     def open_section(self, section_id: str) -> None:
         if self._meta is None:
             return
@@ -275,7 +261,6 @@ class MetadataTab(QWidget):
         self._windows.clear()
 
     def _refresh_windows(self) -> None:
-        """After a save, show the saved file's values in any open windows."""
         name = Path(self._meta.path).name
         for section_id, window in list(self._windows.items()):
             section = self._meta.section(section_id)
@@ -285,14 +270,12 @@ class MetadataTab(QWidget):
             self._ensure_loaded(section)
             window.set_section(section, self._changes.setdefault(section_id, {}), name)
 
-    # --- opening -------------------------------------------------------------
     def choose_file(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, tr("meta_open_dialog"), "", tr("filter_pdf_docx"))
         if path:
             self.open_path(path)
 
     def open_path(self, path: str) -> None:
-        """Open a file chosen by the user (asks first if edits would be lost)."""
         if Path(path).suffix.lower() not in (".pdf", ".docx"):
             QMessageBox.warning(self, tr("unsupported_title"), tr("unsupported"))
             return
@@ -315,7 +298,7 @@ class MetadataTab(QWidget):
                     self, tr("password_needed"), tr("password_prompt", name=name), QLineEdit.Password)
                 if not ok:
                     return None
-            except Exception as exc:  # damaged file, file in use, not really a PDF/DOCX...
+            except Exception as exc:
                 QMessageBox.warning(self, tr("could_not_read"),
                                     tr("could_not_read_msg", name=name, error=M.friendly_error(exc)))
                 return None
@@ -327,7 +310,6 @@ class MetadataTab(QWidget):
         self._build_rows()
         self._update_state()
 
-    # --- saving ----------------------------------------------------------------
     def save_changes(self) -> None:
         if self._meta is None:
             return
@@ -389,12 +371,10 @@ class MetadataTab(QWidget):
             self._build_rows()
             self._update_state()
             return
-        # show the file that was just written, so the view matches reality
         self._show(new_meta)
         self._refresh_windows()
 
     def _apply_file_dates(self, out_path: str, meta: M.FileMetadata) -> None:
-        """Make File Explorer's dates match the document's created / modified dates."""
         if not self.file_dates.isChecked():
             return
         created, modified = M.document_dates(meta)

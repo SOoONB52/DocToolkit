@@ -1,18 +1,3 @@
-"""Read and write metadata for PDF and Word (.docx) files.
-
-Metadata is shown in sections (PDF, XMP, ExifTool for PDF files; Core,
-Application, Custom and ExifTool for Word files). The user edits values in
-section windows, and every edit is written together in one save.
-
-Safety rules:
-- Only values the user changed are written. Everything else stays as it was.
-- Saving writes a temporary file first and then swaps it in, so a failed save
-  never damages the original.
-- "Save a copy" never replaces an existing file; it picks a free name.
-- Password-protected PDFs keep their password, and "fast web view"
-  (linearized) PDFs stay linearized.
-- DocToolkit never writes its own name or a timestamp of its own into a file.
-"""
 from __future__ import annotations
 
 import datetime as dt
@@ -32,23 +17,22 @@ from app.i18n import tr
 
 
 class MetadataError(Exception):
-    """A problem the user can act on. The message is shown as it is."""
+    pass
 
 
 class PdfPasswordRequired(MetadataError):
     pass
 
 
-# --------------------------------------------------------------- model -------
 @dataclass
 class Entry:
-    key: str                 # unique inside its section, e.g. "Info.Author"
-    tag: str                 # readable name, e.g. "Info / Author"
-    value: str = ""          # the value as shown to the user
+    key: str
+    tag: str
+    value: str = ""
     editable: bool = True
-    kind: str = "text"       # text | date | list | int | number | bool
-    note: str = ""           # help text, or why the value is read only
-    raw: str = ""            # the value exactly as stored, when it differs from `value`
+    kind: str = "text"
+    note: str = ""
+    raw: str = ""
 
 
 @dataclass
@@ -58,9 +42,9 @@ class Section:
     description: str
     entries: list[Entry] = field(default_factory=list)
     read_only: bool = False
-    message: str = ""        # shown above the table, e.g. "This file has no XMP yet"
+    message: str = ""
     message_is_rich: bool = False
-    lazy: bool = False       # filled only when first opened (the ExifTool report)
+    lazy: bool = False
     loaded: bool = True
 
     def entry(self, key: str) -> Entry | None:
@@ -70,7 +54,7 @@ class Section:
 @dataclass
 class FileMetadata:
     path: str
-    kind: str                # "pdf" or "docx"
+    kind: str
     sections: list[Section]
     password: str | None = None
 
@@ -78,7 +62,7 @@ class FileMetadata:
         return next((s for s in self.sections if s.id == section_id), None)
 
 
-Changes = dict  # {section_id: {entry_key: new text}}
+Changes = dict
 
 
 def load(path: str, password: str | None = None) -> FileMetadata:
@@ -103,18 +87,15 @@ def clear(meta: FileMetadata, overwrite: bool) -> str:
     return clear_pdf(meta, overwrite) if meta.kind == "pdf" else clear_docx(meta, overwrite)
 
 
-# --------------------------------------------------------------- values ------
 def humanize(name: str) -> str:
-    """'CreationDate' -> 'Creation Date', 'creator' -> 'Creator'."""
     spaced = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", name)
     return spaced[:1].upper() + spaced[1:]
 
 
 def check_value(entry: Entry, text: str) -> str | None:
-    """An error message if `text` can't be stored in this entry, otherwise None."""
     value = text.strip()
     if not value:
-        return None  # empty means "remove this value"
+        return None
     if entry.kind == "date":
         try:
             parse_date(value)
@@ -152,7 +133,6 @@ def split_list(text: str) -> list[str]:
     return [part.strip() for part in text.split(";") if part.strip()]
 
 
-# --------------------------------------------------------------- dates -------
 _HUMAN_DATE = re.compile(
     r"^(\d{4})[-:/](\d{1,2})[-:/](\d{1,2})"
     r"(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?"
@@ -178,13 +158,6 @@ def _offset(text: str | None) -> dt.tzinfo | None:
 
 
 def parse_date(text: str) -> dt.datetime:
-    """Understands the ways dates are written in documents and by people.
-
-    '2026-07-17 14:05:22 +10:00', '2026-07-17 14:05', '2026-07-17',
-    '2026-07-17T14:05:22Z' (XMP / Word), '2026:07:17 14:05:22+10:00' (ExifTool)
-    and "D:20260717140522+10'00'" (PDF Info). Without a time zone, the
-    computer's own time zone is used. Raises ValueError.
-    """
     s = text.strip()
     match = _HUMAN_DATE.match(s) or _PDF_DATE.match(s)
     if not match:
@@ -196,7 +169,7 @@ def parse_date(text: str) -> dt.datetime:
     if tz is not None:
         return naive.replace(tzinfo=tz)
     try:
-        return naive.astimezone()  # the computer's local time zone
+        return naive.astimezone()
     except (OSError, OverflowError, ValueError):
         return naive.replace(tzinfo=dt.timezone.utc)
 
@@ -230,8 +203,6 @@ def to_utc_w3c(moment: dt.datetime) -> str:
 
 
 def _date_entry(key: str, tag: str, raw: str, local: bool = False) -> Entry:
-    """A date value shown as 2026-07-17 14:05:22 +10:00. `local` shows it in this
-    computer's time zone (for Word files, which always store dates in UTC)."""
     shown = raw
     if raw:
         try:
@@ -247,24 +218,21 @@ def _date_entry(key: str, tag: str, raw: str, local: bool = False) -> Entry:
     return Entry(key, tag, shown, kind="date", raw=raw if raw != shown else "")
 
 
-# =============================================================== PDF ========
 PDF_INFO_FIELDS = ["/Title", "/Author", "/Subject", "/Keywords", "/Creator",
                    "/Producer", "/CreationDate", "/ModDate"]
 PDF_INFO_DATES = {"/CreationDate", "/ModDate"}
 
-# XMP values always listed (even when missing), so they can be added.
 XMP_FIELDS = [
     ("dc:title", "text"), ("dc:creator", "list"), ("dc:description", "text"),
     ("dc:subject", "list"), ("pdf:Keywords", "text"), ("pdf:Producer", "text"),
     ("xmp:CreatorTool", "text"), ("xmp:CreateDate", "date"), ("xmp:ModifyDate", "date"),
     ("xmp:MetadataDate", "date"), ("xmpMM:DocumentID", "text"), ("xmpMM:InstanceID", "text"),
 ]
-XMP_SEQ = {"dc:creator", "dc:date"}                     # ordered lists
+XMP_SEQ = {"dc:creator", "dc:date"}
 XMP_BAG = {"dc:subject", "dc:contributor", "dc:publisher", "dc:type", "dc:language", "dc:relation"}
 XMP_DATES = {"xmp:CreateDate", "xmp:ModifyDate", "xmp:MetadataDate", "photoshop:DateCreated"}
 XMP_TOOLKIT = "x:xmptk"
 
-# Info value <-> XMP value that means the same thing.
 SYNC_PAIRS = [
     ("Info.Title", "dc:title"), ("Info.Author", "dc:creator"), ("Info.Subject", "dc:description"),
     ("Info.Keywords", "pdf:Keywords"), ("Info.Creator", "xmp:CreatorTool"),
@@ -287,8 +255,6 @@ _NS_PREFIX = {uri: prefix for uri, prefix in [
 
 
 class _OrderedBag(set):
-    """A set that remembers the order values were typed in (for XMP Bag values)."""
-
     def __init__(self, items):
         self._order = list(dict.fromkeys(items))
         super().__init__(self._order)
@@ -298,7 +264,6 @@ class _OrderedBag(set):
 
 
 def _short_name(clark: str) -> str:
-    """'{http://purl.org/dc/elements/1.1/}creator' -> 'dc:creator'."""
     match = re.match(r"^\{(.*)\}(.*)$", clark)
     if not match:
         return clark
@@ -313,8 +278,6 @@ def _local(name: str) -> str:
 
 def _open_pdf(path: str, password: str | None, writing: bool = False) -> pikepdf.Pdf:
     try:
-        # allow_overwriting_input reads the whole file into memory, so the file
-        # itself isn't held open (Windows would refuse to replace it otherwise).
         return pikepdf.open(path, password=password or "", allow_overwriting_input=writing)
     except pikepdf.PasswordError as exc:
         raise PdfPasswordRequired(str(path)) from exc
@@ -369,7 +332,7 @@ def _pdf_section(pdf: pikepdf.Pdf) -> Section:
         Entry("PDFVersion", "PDFVersion", effective, editable=False, note=structure),
     ]
 
-    info = pdf.trailer.get("/Info")  # read it without creating one
+    info = pdf.trailer.get("/Info")
     present = [str(k) for k in info.keys()] if info is not None else []
     for name in dict.fromkeys(PDF_INFO_FIELDS + present):
         key, tag = f"Info.{name[1:]}", f"Info / {humanize(name[1:])}"
@@ -414,8 +377,8 @@ def _xmp_section(pdf: pikepdf.Pdf) -> Section:
             section.read_only = True
             section.message = tr("msg_bad_xmp")
 
-    toolkit = re.search(rb'x:xmptk="([^"]*)"', raw or b"")
-    toolkit_text = html.unescape(toolkit.group(1).decode("utf-8", "replace")) if toolkit else ""
+    toolkit = re.search(rb"""x:xmptk=(["'])(.*?)\1""", raw or b"")
+    toolkit_text = html.unescape(toolkit.group(2).decode("utf-8", "replace")) if toolkit else ""
     section.entries.append(Entry(XMP_TOOLKIT, "XMP / Toolkit", toolkit_text,
                                  editable=not section.read_only))
 
@@ -433,7 +396,7 @@ def _xmp_section(pdf: pikepdf.Pdf) -> Section:
                 editable, note = False, tr("note_complex")
         elif value is None:
             shown = ""
-            if name in values:  # present, but not something we can show as text
+            if name in values:
                 editable, note = False, tr("note_complex")
         elif isinstance(value, str):
             shown = value
@@ -451,7 +414,7 @@ def _xmp_section(pdf: pikepdf.Pdf) -> Section:
 
 def _set_info(pdf: pikepdf.Pdf, key: str, text: str) -> None:
     value = text.strip()
-    if key == "Info.Language":  # stored in the document catalog, not in Info
+    if key == "Info.Language":
         if value:
             pdf.Root.Lang = pikepdf.String(value)
         elif "/Lang" in pdf.Root:
@@ -469,12 +432,11 @@ def _set_info(pdf: pikepdf.Pdf, key: str, text: str) -> None:
 
 
 def _set_xmp_toolkit(raw: bytes, toolkit: str | None, created: bool) -> bytes:
-    """Change the XMP toolkit name (a software fingerprint)."""
     if toolkit is None and not created:
         return raw
     if toolkit is None:
-        toolkit = ""  # pikepdf writes its own name into a brand-new XMP packet; remove it
-    raw = re.sub(rb'\s+x:xmptk="[^"]*"', b"", raw)
+        toolkit = ""
+    raw = re.sub(rb"""\s+x:xmptk=(["']).*?\1""", b"", raw)
     if toolkit:
         attr = ' x:xmptk="{}"'.format(html.escape(toolkit, quote=True)).encode("utf-8")
         raw = re.sub(rb"(<x:xmpmeta\b)", lambda m: m.group(1) + attr, raw, count=1)
@@ -509,10 +471,9 @@ def _apply_xmp(pdf: pikepdf.Pdf, edits: dict[str, str], section: Section | None)
 
 
 def _sync(info_edits: dict, xmp_edits: dict, has_xmp: bool) -> None:
-    """Copy each edit to its twin in the other section, unless the user edited both."""
     for info_key, xmp_key in SYNC_PAIRS:
         if info_key in info_edits and xmp_key not in xmp_edits:
-            if has_xmp:  # never create an XMP section just to mirror an Info edit
+            if has_xmp:
                 xmp_edits[xmp_key] = info_edits[info_key]
         elif xmp_key in xmp_edits and info_key not in info_edits:
             text = xmp_edits[xmp_key]
@@ -537,11 +498,6 @@ def save_pdf(meta: FileMetadata, changes: Changes, overwrite: bool, sync: bool =
 
 
 def clear_pdf(meta: FileMetadata, overwrite: bool) -> str:
-    """Remove the Info dictionary values and the XMP metadata (privacy).
-
-    PDF/A and PDF/UA files must keep their identification in XMP, so only that
-    part is kept for them.
-    """
     with _open_pdf(meta.path, meta.password, writing=True) as pdf:
         info = pdf.trailer.get("/Info")
         if info is not None:
@@ -569,7 +525,7 @@ def _save_pdf(pdf: pikepdf.Pdf, src: Path, overwrite: bool) -> str:
     target = src if overwrite else copy_path(src)
     options = {"linearize": pdf.is_linearized}
     if pdf.is_encrypted:
-        options["encryption"] = True  # keep the same password and permissions
+        options["encryption"] = True
     fd, tmp = tempfile.mkstemp(suffix=".pdf", prefix=".doctoolkit-", dir=str(target.parent))
     os.close(fd)
     try:
@@ -581,7 +537,6 @@ def _save_pdf(pdf: pikepdf.Pdf, src: Path, overwrite: bool) -> str:
     return str(target)
 
 
-# =============================================================== DOCX =======
 CORE = "docProps/core.xml"
 APP = "docProps/app.xml"
 CUSTOM = "docProps/custom.xml"
@@ -616,8 +571,6 @@ CUSTOM_KINDS = {"lpwstr": "text", "lpstr": "text", "bstr": "text",
                 "r4": "number", "r8": "number", "decimal": "number",
                 "bool": "bool", "filetime": "date", "date": "date"}
 
-# resolve_entities=False and no_network=True: never let a file make the parser
-# read other files or go online.
 _PARSER = etree.XMLParser(resolve_entities=False, no_network=True)
 
 
@@ -670,7 +623,7 @@ def _app_section(xml: bytes | None) -> Section:
     for name in dict.fromkeys([n for n, _ in APP_EDITABLE] + present):
         el = root.find(_ep(name)) if root is not None else None
         tag = f"App / {humanize(name)}"
-        if el is not None and len(el):  # lists such as TitlesOfParts
+        if el is not None and len(el):
             values = [t.text or "" for t in el.iter() if isinstance(t.tag, str)
                       and etree.QName(t).localname in ("lpstr", "lpwstr")]
             section.entries.append(Entry(name, tag, "; ".join(values), editable=False,
@@ -717,7 +670,7 @@ def _edit_core(xml: bytes, edits: dict[str, str]) -> bytes:
     for name, text in edits.items():
         value = text.strip()
         el = root.find(_q(name))
-        if not value:  # an empty date would be invalid, so remove the value entirely
+        if not value:
             if el is not None:
                 root.remove(el)
             continue
@@ -781,8 +734,6 @@ def save_docx(meta: FileMetadata, changes: Changes, overwrite: bool) -> str:
 
 
 def clear_docx(meta: FileMetadata, overwrite: bool) -> str:
-    """Remove the document properties, company, template, editing time and
-    custom properties. Word's statistics (pages, words) are kept."""
     infos, parts = _read_zip(meta.path)
     if CORE in parts:
         root = etree.fromstring(parts[CORE], _PARSER)
@@ -809,7 +760,7 @@ def _write_docx(src: Path, infos: list[zipfile.ZipInfo], parts: dict[str, bytes]
     os.close(fd)
     try:
         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
-            for info in infos:  # same order and same entry details as the original
+            for info in infos:
                 zf.writestr(info, parts[info.filename])
         os.replace(tmp, target)
     finally:
@@ -818,14 +769,12 @@ def _write_docx(src: Path, infos: list[zipfile.ZipInfo], parts: dict[str, bytes]
     return str(target)
 
 
-# =============================================================== ExifTool ===
 def exiftool_placeholder() -> Section:
     return Section("exiftool", tr("sec_exiftool"), tr("sec_exiftool_desc"),
                    read_only=True, lazy=True, loaded=False)
 
 
 def fill_exiftool(section: Section, path: str) -> None:
-    """Run ExifTool (if it's installed) and put its report into the section."""
     from app.core import exiftool
     section.loaded = True
     try:
@@ -841,10 +790,7 @@ def fill_exiftool(section: Section, path: str) -> None:
     section.entries = [Entry(f"ExifTool.{tag}", tag, value, editable=False) for tag, value in report]
 
 
-# =============================================================== shared =====
 def copy_path(src: Path) -> Path:
-    """'report.pdf' -> 'report-modified.pdf', or 'report-modified (2).pdf' if that
-    exists. Saving a copy of a copy doesn't pile up '-modified-modified'."""
     stem = re.sub(r"-modified(?: \(\d+\))?$", "", src.stem)
     candidate = src.with_name(f"{stem}-modified{src.suffix}")
     number = 2
@@ -855,7 +801,6 @@ def copy_path(src: Path) -> Path:
 
 
 def document_dates(meta: FileMetadata) -> tuple[dt.datetime | None, dt.datetime | None]:
-    """The document's own created / modified dates (for the Windows file dates option)."""
     if meta.kind == "pdf":
         sources = [("pdf", "Info.CreationDate", "Info.ModDate"), ("xmp", "xmp:CreateDate", "xmp:ModifyDate")]
     else:
@@ -887,11 +832,6 @@ def friendly_error(exc: Exception) -> str:
 
 def set_file_times(path: str, created: dt.datetime | None = None,
                    modified: dt.datetime | None = None) -> bool:
-    """Set the Windows file dates shown in File Explorer.
-
-    Modified (and last accessed) works everywhere. Created can only be set on
-    Windows. Returns True if the created date was applied.
-    """
     if modified is not None:
         stamp = modified.timestamp()
         os.utime(path, (stamp, stamp))
@@ -902,7 +842,6 @@ def set_file_times(path: str, created: dt.datetime | None = None,
     from ctypes import wintypes
 
     def filetime(moment: dt.datetime) -> wintypes.FILETIME:
-        # 100-nanosecond intervals since 1601-01-01 (UTC)
         value = int(moment.timestamp() * 10_000_000) + 116_444_736_000_000_000
         return wintypes.FILETIME(value & 0xFFFFFFFF, value >> 32)
 

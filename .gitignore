@@ -1,18 +1,12 @@
-# Python
 venv/
 .venv/
 __pycache__/
 *.pyc
-
-# build output (DocToolkit.spec is kept: it is the build recipe)
 build/
 dist/
-
-# programs bundled into the app; they are copied in before building, not stored in git
 tesseract/
 exiftool/
-
-# temporary files
 files.txt
 *.zip
 .doctoolkit-*
+BUILD-NOTES.md
